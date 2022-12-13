@@ -6,3 +6,5 @@ vendor/
 .vscode/
 
 media/
+
+.idea
