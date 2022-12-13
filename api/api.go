@@ -38,7 +38,7 @@ func New(opt *RouterOptions) *gin.Engine {
 	apiV1.POST("/auth/register", handlerV1.Register)
 	apiV1.POST("/auth/verify", handlerV1.Verify)
 	apiV1.POST("/auth/login", handlerV1.Login)
-	apiV1.POST("/auth/forgot_password", handlerV1.VerifyForgotPassword)
+	apiV1.POST("/auth/verify-forgot-password", handlerV1.VerifyForgotPassword)
 
 	apiV1.POST("/users", handlerV1.CreateUser)
 	apiV1.GET("/users/:id", handlerV1.GetUser)
@@ -47,7 +47,7 @@ func New(opt *RouterOptions) *gin.Engine {
 	apiV1.DELETE("/users/:id", handlerV1.DeleteUser)
 	apiV1.GET("/users/email/:email", handlerV1.GetUserByEmail)
 
-	apiV1.POST("/posts", handlerV1.CreatePost)
+	apiV1.POST("/posts", handlerV1.AuthMiddleware, handlerV1.CreatePost)
 
 	apiV1.POST("/categories", handlerV1.CreateCategory)
 
