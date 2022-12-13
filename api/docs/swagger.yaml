@@ -100,6 +100,18 @@ definitions:
       count:
         type: integer
     type: object
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 16
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
   models.Post:
     properties:
       category_id:
@@ -222,6 +234,32 @@ info:
   title: Swagger for blog api
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login user
+      parameters:
+      - description: Data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AuthResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Login user
+      tags:
+      - auth
   /auth/register:
     post:
       consumes:
@@ -272,6 +310,32 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Verify user
+      tags:
+      - auth
+  /auth/verify-forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Verify forgot password
+      parameters:
+      - description: Data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.VerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AuthResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Verify forgot password
       tags:
       - auth
   /categories:

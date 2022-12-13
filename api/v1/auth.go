@@ -91,3 +91,76 @@ func (h *handlerV1) Verify(c *gin.Context) {
 		AccessToken: result.AccessToken,
 	})
 }
+
+// @Router /auth/login [post]
+// @Summary Login user
+// @Description Login user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param data body models.LoginRequest true "Data"
+// @Success 200 {object} models.AuthResponse
+// @Failure 500 {object} models.ErrorResponse
+func (h *handlerV1) Login(c *gin.Context) {
+	var (
+		req models.LoginRequest
+	)
+
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	result, err := h.grpcClient.AuthService().Login(context.Background(), &pbu.LoginRequest{
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, models.AuthResponse{
+		ID:          result.Id,
+		FirstName:   result.FirstName,
+		LastName:    result.LastName,
+		Email:       result.Email,
+		Type:        result.Type,
+		CreatedAt:   result.CreatedAt,
+		AccessToken: result.AccessToken,
+	})
+}
+
+// @Router /auth/verify-forgot-password [post]
+// @Summary Verify forgot password
+// @Description Verify forgot password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param data body models.VerifyRequest true "Data"
+// @Success 200 {object} models.AuthResponse
+// @Failure 500 {object} models.ErrorResponse
+func (h *handlerV1) VerifyForgotPassword(c *gin.Context) {
+	var (
+		req models.VerifyRequest
+	)
+
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	_, err = h.grpcClient.AuthService().ForgotPassword(context.Background(), &pbu.ForgotPasswordRequest{
+		Email: req.Email,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusCreated, models.ResponseOK{
+		Message: "Validation code has been sent",
+	})
+}
