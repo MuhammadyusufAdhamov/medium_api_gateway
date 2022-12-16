@@ -5,6 +5,8 @@ import (
 	"github.com/MuhammadyusufAdhamov/medium_api_gateway/api/models"
 	pbu "github.com/MuhammadyusufAdhamov/medium_api_gateway/genproto/user_service"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"net/http"
 )
 
@@ -77,8 +79,17 @@ func (h *handlerV1) Verify(c *gin.Context) {
 		Code:  req.Code,
 	})
 	if err != nil {
-		c.JSON(http.StatusBadRequest, errorResponse(err))
-		return
+		s, _ := status.FromError(err)
+		if s.Message() == "incorrect_code" {
+			c.JSON(http.StatusBadRequest, errorResponse(ErrIncorrectCode))
+			return
+		} else if s.Message() == "code_expired" {
+			c.JSON(http.StatusBadRequest, errorResponse(ErrCodeExpired))
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
 	}
 
 	c.JSON(http.StatusCreated, models.AuthResponse{
@@ -108,6 +119,7 @@ func (h *handlerV1) Login(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
+		h.logger.WithError(err).Error("failed to bind JSON in login")
 		c.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
@@ -117,7 +129,14 @@ func (h *handlerV1) Login(c *gin.Context) {
 		Password: req.Password,
 	})
 	if err != nil {
-		c.JSON(http.StatusBadRequest, errorResponse(err))
+		h.logger.WithError(err).Error("failed to login")
+		s, _ := status.FromError(err)
+		if s.Code() == codes.NotFound || s.Message() == "incorrect_password" {
+			c.JSON(http.StatusBadRequest, errorResponse(ErrWrongEmailOrPass))
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 

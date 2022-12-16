@@ -14,3 +14,7 @@ type GetAllCategoriesResponse struct {
 	Categories []*Category `json:"categories"`
 	Count      int32       `json:"count"`
 }
+
+type UpdateCategoryRequest struct {
+	Title string `json:"title"`
+}

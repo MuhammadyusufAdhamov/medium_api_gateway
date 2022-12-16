@@ -6,6 +6,7 @@ import (
 	"github.com/MuhammadyusufAdhamov/medium_api_gateway/config"
 	grpcPkg "github.com/MuhammadyusufAdhamov/medium_api_gateway/pkg/grpc_client"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
@@ -15,23 +16,26 @@ var (
 	ErrUserNotVerified  = errors.New("user not verified")
 	ErrIncorrectCode    = errors.New("incorrect verification code")
 	ErrCodeExpired      = errors.New("verification code has been expired")
-	ErrForbidden        = errors.New("forbidden")
+	ErrNotAllowed       = errors.New("method not allowed")
 )
 
 type handlerV1 struct {
 	cfg        *config.Config
 	grpcClient grpcPkg.GrpcClientI
+	logger     *logrus.Logger
 }
 
 type HandlerV1Options struct {
 	Cfg        *config.Config
 	GrpcClient grpcPkg.GrpcClientI
+	Logger     *logrus.Logger
 }
 
 func New(options *HandlerV1Options) *handlerV1 {
 	return &handlerV1{
 		cfg:        options.Cfg,
 		grpcClient: options.GrpcClient,
+		logger:     options.Logger,
 	}
 }
 

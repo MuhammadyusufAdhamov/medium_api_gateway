@@ -38,3 +38,11 @@ type GetAllPostsResponse struct {
 	Posts []*Post `json:"posts"`
 	Count int32   `json:"count"`
 }
+
+type UpdatePostRequest struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	ImageUrl    string `json:"image_url"`
+	UserID      int64  `json:"user_id"`
+	CategoryID  int64  `json:"category_id"`
+}

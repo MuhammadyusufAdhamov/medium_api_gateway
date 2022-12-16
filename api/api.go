@@ -1,12 +1,12 @@
 package api
 
 import (
+	_ "github.com/MuhammadyusufAdhamov/medium_api_gateway/api/docs"
 	"github.com/MuhammadyusufAdhamov/medium_api_gateway/api/v1"
 	"github.com/MuhammadyusufAdhamov/medium_api_gateway/config"
 	grpcPkg "github.com/MuhammadyusufAdhamov/medium_api_gateway/pkg/grpc_client"
 	"github.com/gin-gonic/gin"
-
-	_ "github.com/MuhammadyusufAdhamov/medium_api_gateway/api/docs"
+	"github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"     // swagger embed files
 	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
@@ -14,6 +14,7 @@ import (
 type RouterOptions struct {
 	Cfg        *config.Config
 	GrpcClient grpcPkg.GrpcClientI
+	Logger     *logrus.Logger
 }
 
 // @title           Swagger for blog api
@@ -31,6 +32,7 @@ func New(opt *RouterOptions) *gin.Engine {
 	handlerV1 := v1.New(&v1.HandlerV1Options{
 		Cfg:        opt.Cfg,
 		GrpcClient: opt.GrpcClient,
+		Logger:     opt.Logger,
 	})
 
 	apiV1 := router.Group("/v1")
@@ -40,16 +42,31 @@ func New(opt *RouterOptions) *gin.Engine {
 	apiV1.POST("/auth/login", handlerV1.Login)
 	apiV1.POST("/auth/verify-forgot-password", handlerV1.VerifyForgotPassword)
 
-	apiV1.POST("/users", handlerV1.CreateUser)
+	apiV1.POST("/users", handlerV1.AuthMiddleware("users", "create"), handlerV1.CreateUser)
 	apiV1.GET("/users/:id", handlerV1.GetUser)
-	apiV1.PUT("/users/:id", handlerV1.UpdateUser)
+	apiV1.PUT("/users/:id", handlerV1.AuthMiddleware("users", "update"), handlerV1.UpdateUser)
 	apiV1.GET("/users", handlerV1.GetAllUsers)
-	apiV1.DELETE("/users/:id", handlerV1.DeleteUser)
+	apiV1.DELETE("/users/:id", handlerV1.AuthMiddleware("users", "delete"), handlerV1.DeleteUser)
 	apiV1.GET("/users/email/:email", handlerV1.GetUserByEmail)
 
-	apiV1.POST("/posts", handlerV1.AuthMiddleware, handlerV1.CreatePost)
+	apiV1.GET("/categories/:id", handlerV1.GetCategory)
+	apiV1.POST("/categories", handlerV1.AuthMiddleware("categories", "create"), handlerV1.CreateCategory)
+	apiV1.GET("/categories", handlerV1.GetAllCategories)
+	//apiV1.POST("/categories", handlerV1.UpdateCategory)
+	apiV1.DELETE("/categories/:id", handlerV1.AuthMiddleware("categories", "delete"), handlerV1.DeleteCategory)
 
-	apiV1.POST("/categories", handlerV1.CreateCategory)
+	apiV1.GET("/posts/:id", handlerV1.GetPost)
+	apiV1.POST("/posts", handlerV1.AuthMiddleware("posts", "create"), handlerV1.CreatePost)
+	apiV1.GET("/posts", handlerV1.GetAllPosts)
+	//apiV1.POST("/posts", handlerV1.UpdatePost)
+	apiV1.DELETE("/posts/:id", handlerV1.AuthMiddleware("posts", "delete"), handlerV1.DeletePost)
+
+	apiV1.POST("/comments", handlerV1.AuthMiddleware("comments", "create"), handlerV1.CreateComment)
+	apiV1.GET("/comments", handlerV1.GetAllComments)
+	apiV1.DELETE("/comments/:id", handlerV1.AuthMiddleware("comments", "delete"), handlerV1.DeleteComment)
+
+	apiV1.POST("/likes", handlerV1.AuthMiddleware("likes", "create"), handlerV1.CreateLike)
+	apiV1.GET("/likes", handlerV1.GetLike)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

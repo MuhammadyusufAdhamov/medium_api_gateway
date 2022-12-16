@@ -14,6 +14,8 @@ type GrpcClientI interface {
 	AuthService() pbu.AuthServiceClient
 	PostService() pbp.PostServiceClient
 	CategoryService() pbp.CategoryServiceClient
+	CommentService() pbp.CommentServiceClient
+	LikeService() pbp.LikeServiceClient
 }
 
 type GrpcClient struct {
@@ -46,6 +48,8 @@ func New(cfg config.Config) (GrpcClientI, error) {
 			"auth_service":     pbu.NewAuthServiceClient(connUserService),
 			"post_service":     pbp.NewPostServiceClient(connPostService),
 			"category_service": pbp.NewCategoryServiceClient(connPostService),
+			"comment_service":  pbp.NewCommentServiceClient(connPostService),
+			"like_service":     pbp.NewLikeServiceClient(connPostService),
 		},
 	}, nil
 }
@@ -64,4 +68,12 @@ func (g *GrpcClient) PostService() pbp.PostServiceClient {
 
 func (g *GrpcClient) CategoryService() pbp.CategoryServiceClient {
 	return g.connections["category_service"].(pbp.CategoryServiceClient)
+}
+
+func (g *GrpcClient) CommentService() pbp.CommentServiceClient {
+	return g.connections["comment_service"].(pbp.CommentServiceClient)
+}
+
+func (g *GrpcClient) LikeService() pbp.LikeServiceClient {
+	return g.connections["like_service"].(pbp.LikeServiceClient)
 }
