@@ -52,21 +52,22 @@ func New(opt *RouterOptions) *gin.Engine {
 	apiV1.GET("/categories/:id", handlerV1.GetCategory)
 	apiV1.POST("/categories", handlerV1.AuthMiddleware("categories", "create"), handlerV1.CreateCategory)
 	apiV1.GET("/categories", handlerV1.GetAllCategories)
-	//apiV1.POST("/categories", handlerV1.UpdateCategory)
+	apiV1.PUT("/categories/:id", handlerV1.AuthMiddleware("categories", "update"), handlerV1.UpdateCategory)
 	apiV1.DELETE("/categories/:id", handlerV1.AuthMiddleware("categories", "delete"), handlerV1.DeleteCategory)
 
 	apiV1.GET("/posts/:id", handlerV1.GetPost)
 	apiV1.POST("/posts", handlerV1.AuthMiddleware("posts", "create"), handlerV1.CreatePost)
 	apiV1.GET("/posts", handlerV1.GetAllPosts)
-	//apiV1.POST("/posts", handlerV1.UpdatePost)
+	apiV1.PUT("/posts/:id", handlerV1.AuthMiddleware("posts", "update"), handlerV1.UpdatePost)
 	apiV1.DELETE("/posts/:id", handlerV1.AuthMiddleware("posts", "delete"), handlerV1.DeletePost)
 
 	apiV1.POST("/comments", handlerV1.AuthMiddleware("comments", "create"), handlerV1.CreateComment)
 	apiV1.GET("/comments", handlerV1.GetAllComments)
 	apiV1.DELETE("/comments/:id", handlerV1.AuthMiddleware("comments", "delete"), handlerV1.DeleteComment)
 
-	apiV1.POST("/likes", handlerV1.AuthMiddleware("likes", "create"), handlerV1.CreateLike)
+	apiV1.POST("/likes", handlerV1.AuthMiddleware("likes", "create"), handlerV1.CreateOrUpdateLike)
 	apiV1.GET("/likes", handlerV1.GetLike)
+	apiV1.GET("/likes/get-likes-and-dislikes", handlerV1.GetLikesAndDislikesCount)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

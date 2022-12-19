@@ -11,6 +11,7 @@ import (
 	"strconv"
 )
 
+// @Security ApiKeyAuth
 // @Router /categories [post]
 // @Summary Create a category
 // @Description Create a category
@@ -46,13 +47,15 @@ func (h *handlerV1) CreateCategory(c *gin.Context) {
 	})
 }
 
-// @Router /categories [put]
+// @Security ApiKeyAuth
+// @Router /categories/{id} [put]
 // @Summary Update a category
 // @Description Update a category
 // @Tags category
 // @Accept json
 // @Produce json
-// @Param category body models.UpdateCategoryRequest true "User"
+// @Param id path int true "ID"
+// @Param category body models.CreateCategoryRequest true "category"
 // @Success 200 {object} models.Category
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) UpdateCategory(c *gin.Context) {
@@ -66,7 +69,14 @@ func (h *handlerV1) UpdateCategory(c *gin.Context) {
 		return
 	}
 
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
 	category, err := h.grpcClient.CategoryService().Update(context.Background(), &pbp.Category{
+		Id:    int64(id),
 		Title: req.Title,
 	})
 	if err != nil {
@@ -165,6 +175,7 @@ func getCategoriesResponse(data *pbp.GetAllCategoriesResponse) *models.GetAllCat
 	return &response
 }
 
+// @Security ApiKeyAuth
 // @Router /categories/{id} [delete]
 // @Summary Delete category
 // @Description Delete category

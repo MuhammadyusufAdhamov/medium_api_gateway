@@ -7,8 +7,12 @@ type Like struct {
 	Status bool  `json:"status"`
 }
 
-type CreateLikeRequest struct {
+type CreateOrUpdateLikeRequest struct {
+	Status bool  `json:"status"`
 	PostID int64 `json:"post_id" binding:"required"`
-	Status bool  `json:"status" binding:"required"`
-	UserID int64 `json:"user_id" binding:"required"`
+}
+
+type LikesAndDislikesCount struct {
+	Likes    int64 `json:"likes"`
+	Dislikes int64 `json:"dislikes"`
 }

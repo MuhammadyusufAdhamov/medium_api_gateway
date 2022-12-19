@@ -29,16 +29,37 @@ func New(cfg config.Config) (GrpcClientI, error) {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("user service dial host: %s port:%s err: %v",
-			cfg.UserServiceHost, cfg.UserServiceGrpcPort, err)
+		return nil, fmt.Errorf("user service dial host: %v port: %v", cfg.UserServiceHost, cfg.UserServiceGrpcPort)
 	}
 	connPostService, err := grpc.Dial(
 		fmt.Sprintf("%s%s", cfg.PostServiceHost, cfg.PostServiceGrpcPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("post service dial host: %s port:%s err: %v",
-			cfg.PostServiceHost, cfg.PostServiceGrpcPort, err)
+		return nil, fmt.Errorf("post service dial host: %v port: %v", cfg.UserServiceHost, cfg.UserServiceGrpcPort)
+	}
+	connLikeService, err := grpc.Dial(
+		fmt.Sprintf("%s%s", cfg.PostServiceHost, cfg.PostServiceGrpcPort),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("like service dial host: %v port: %v", cfg.UserServiceHost, cfg.UserServiceGrpcPort)
+	}
+
+	connCategoryService, err := grpc.Dial(
+		fmt.Sprintf("%s%s", cfg.PostServiceHost, cfg.PostServiceGrpcPort),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("category service dial host: %v port: %v", cfg.UserServiceHost, cfg.UserServiceGrpcPort)
+	}
+
+	connCommentService, err := grpc.Dial(
+		fmt.Sprintf("%s%s", cfg.PostServiceHost, cfg.PostServiceGrpcPort),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("comment service dial host: %v port: %v", cfg.UserServiceHost, cfg.UserServiceGrpcPort)
 	}
 
 	return &GrpcClient{
@@ -47,9 +68,9 @@ func New(cfg config.Config) (GrpcClientI, error) {
 			"user_service":     pbu.NewUserServiceClient(connUserService),
 			"auth_service":     pbu.NewAuthServiceClient(connUserService),
 			"post_service":     pbp.NewPostServiceClient(connPostService),
-			"category_service": pbp.NewCategoryServiceClient(connPostService),
-			"comment_service":  pbp.NewCommentServiceClient(connPostService),
-			"like_service":     pbp.NewLikeServiceClient(connPostService),
+			"category_service": pbp.NewCategoryServiceClient(connCategoryService),
+			"comment_service":  pbp.NewCommentServiceClient(connCommentService),
+			"like_service":     pbp.NewLikeServiceClient(connLikeService),
 		},
 	}, nil
 }

@@ -28,6 +28,36 @@ definitions:
       title:
         type: string
     type: object
+  models.Comment:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      post_id:
+        type: integer
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.CommentUser'
+      user_id:
+        type: integer
+    type: object
+  models.CommentUser:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      profile_image_url:
+        type: string
+    type: object
   models.CreateCategoryRequest:
     properties:
       title:
@@ -35,6 +65,28 @@ definitions:
         type: string
     required:
     - title
+    type: object
+  models.CreateCommentRequest:
+    properties:
+      description:
+        type: string
+      post_id:
+        type: integer
+      user_id:
+        type: integer
+    required:
+    - description
+    - post_id
+    - user_id
+    type: object
+  models.CreateOrUpdateLikeRequest:
+    properties:
+      post_id:
+        type: integer
+      status:
+        type: boolean
+    required:
+    - post_id
     type: object
   models.CreatePostRequest:
     properties:
@@ -91,6 +143,24 @@ definitions:
       error:
         type: string
     type: object
+  models.GetAllCategoriesResponse:
+    properties:
+      categories:
+        items:
+          $ref: '#/definitions/models.Category'
+        type: array
+      count:
+        type: integer
+    type: object
+  models.GetAllCommentsResponse:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/models.Comment'
+        type: array
+      count:
+        type: integer
+    type: object
   models.GetAllUsersResponse:
     properties:
       categories:
@@ -98,6 +168,24 @@ definitions:
           $ref: '#/definitions/models.User'
         type: array
       count:
+        type: integer
+    type: object
+  models.Like:
+    properties:
+      id:
+        type: integer
+      post_id:
+        type: integer
+      status:
+        type: boolean
+      user_id:
+        type: integer
+    type: object
+  models.LikesAndDislikesCount:
+    properties:
+      dislikes:
+        type: integer
+      likes:
         type: integer
     type: object
   models.LoginRequest:
@@ -168,6 +256,24 @@ definitions:
     properties:
       message:
         type: string
+    type: object
+  models.UpdateCategoryRequest:
+    properties:
+      title:
+        type: string
+    type: object
+  models.UpdatePostRequest:
+    properties:
+      category_id:
+        type: integer
+      description:
+        type: string
+      image_url:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
     type: object
   models.UpdateUserRequest:
     properties:
@@ -339,6 +445,38 @@ paths:
       tags:
       - auth
   /categories:
+    get:
+      consumes:
+      - application/json
+      description: Get all categories
+      parameters:
+      - default: 10
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - default: 1
+        in: query
+        name: page
+        required: true
+        type: integer
+      - in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetAllCategoriesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get all categories
+      tags:
+      - category
     post:
       consumes:
       - application/json
@@ -361,10 +499,291 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Create a category
       tags:
       - category
+    put:
+      consumes:
+      - application/json
+      description: Update a category
+      parameters:
+      - description: User
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Category'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update a category
+      tags:
+      - category
+  /categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete category
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ResponseOK'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete category
+      tags:
+      - category
+    get:
+      consumes:
+      - application/json
+      description: Get category by id
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Category'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get category by id
+      tags:
+      - category
+  /comments:
+    get:
+      consumes:
+      - application/json
+      description: Get all comments
+      parameters:
+      - default: 10
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - default: 1
+        in: query
+        name: page
+        required: true
+        type: integer
+      - in: query
+        name: post_id
+        type: integer
+      - in: query
+        name: user_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetAllCommentsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get all comments
+      tags:
+      - comment
+    post:
+      consumes:
+      - application/json
+      description: Create a comment
+      parameters:
+      - description: comment
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Comment'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a comment
+      tags:
+      - comment
+  /comments/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete comment
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ResponseOK'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete comment
+      tags:
+      - comment
+  /likes:
+    get:
+      consumes:
+      - application/json
+      description: Get like
+      parameters:
+      - description: post_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Like'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get like
+      tags:
+      - like
+    post:
+      consumes:
+      - application/json
+      description: Create Or Update like
+      parameters:
+      - description: like
+        in: body
+        name: like
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateOrUpdateLikeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Like'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create Or Update like
+      tags:
+      - like
+  /likes/get-likes-and-dislikes:
+    get:
+      consumes:
+      - application/json
+      description: Get likes and dislikes count
+      parameters:
+      - description: post_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.LikesAndDislikesCount'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get likes and dislike count
+      tags:
+      - like
   /posts:
+    get:
+      consumes:
+      - application/json
+      description: Get all posts
+      parameters:
+      - default: 10
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - default: 1
+        in: query
+        name: page
+        required: true
+        type: integer
+      - in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetAllCategoriesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get all posts
+      tags:
+      - post
     post:
       consumes:
       - application/json
@@ -387,7 +806,87 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Create a post
+      tags:
+      - post
+    put:
+      consumes:
+      - application/json
+      description: Update a post
+      parameters:
+      - description: User
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update a post
+      tags:
+      - post
+  /posts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete post
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ResponseOK'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete post
+      tags:
+      - post
+    get:
+      consumes:
+      - application/json
+      description: Get post by id
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Post'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get post by id
       tags:
       - post
   /users:
@@ -445,6 +944,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Create a user
       tags:
       - user
@@ -470,6 +971,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Update a user
       tags:
       - user
@@ -495,6 +998,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Delete user
       tags:
       - user

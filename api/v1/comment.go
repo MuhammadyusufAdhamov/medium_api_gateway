@@ -96,6 +96,7 @@ func getCommentsResponse(data *pbp.GetAllCommentsResponse) *models.GetAllComment
 	return &response
 }
 
+// @Security ApiKeyAuth
 // @Router /comments/{id} [delete]
 // @Summary Delete comment
 // @Description Delete comment
